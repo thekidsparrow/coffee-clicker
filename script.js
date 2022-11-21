@@ -3,6 +3,7 @@
 /***The line below allows us to access the data from the window object.
  * This comes from the data.js file***/
 
+
 /***Before we can begin manipulating the DOM we need to gain access to two DOM Nodes***/
 // 1. Declare a variable bigCoffee that holds reference to the element with id 'big_coffee'.
 // your code here
@@ -47,6 +48,7 @@ function updateCoffeeView(coffeeQty) {
 function clickCoffee(data) {
   data.coffee++;
   updateCoffeeView(data.coffee);
+  renderProducers(data);
 }
 
 /**************
@@ -103,11 +105,6 @@ function renderProducers(data) {
 
   deleteAllChildNodes(producerContainer);
 
-  // data.producers.forEach(item => {
-  //   let producerDiv = makeProducerDiv(item);
-  //   producerContainer.appendChild(producerDiv);
-  // });
-
   unlockProducers(data.producers, data.coffee);
 
   data.producers.forEach(item => {
@@ -123,31 +120,57 @@ function renderProducers(data) {
  **************/
 
 function getProducerById(data, producerId) {
-  // your code here
+  let producer = data.producers.filter(producer => producer.id === producerId);
+
+  return producer[0];
 }
 
 function canAffordProducer(data, producerId) {
-  // your code here
+  let producer = getProducerById(data, producerId);
+
+  return data.coffee > producer.price;
 }
 
 function updateCPSView(cps) {
-  // your code here
+  document.getElementById("cps").innerText = cps;
 }
 
 function updatePrice(oldPrice) {
-  // your code here
+  return parseInt(oldPrice * 1.25);
 }
 
 function attemptToBuyProducer(data, producerId) {
-  // your code here
+  let producer = getProducerById(data, producerId);
+  let canAfford = canAffordProducer(data, producerId);
+
+  if (canAfford) {
+    producer.qty++;
+    data.coffee = data.coffee - producer.price;
+    producer.price = updatePrice(producer.price);
+    data.totalCPS = data.totalCPS + producer.cps;
+  }
+
+  return canAfford;
 }
 
 function buyButtonClick(event, data) {
-  // your code here
+  if (event.target.tagName === "BUTTON") {
+    const producerId = event.target.id.slice(4);
+    const result = attemptToBuyProducer(data, producerId);
+    if (!result) {
+      window.alert("Not enough coffee!");
+    } else {
+      renderProducers(data);
+      updateCoffeeView(data.coffee);
+      updateCPSView(data.totalCPS);
+    }
+  }
 }
 
 function tick(data) {
-  // your code here
+  data.coffee = data.coffee + data.totalCPS;
+  updateCoffeeView(data.coffee);
+  renderProducers(data);
 }
 
 /**********************************
@@ -178,6 +201,3 @@ if (typeof process !== 'undefined') {
     tick,
   };
 }
-
-
-
